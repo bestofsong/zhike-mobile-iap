@@ -1,0 +1,24 @@
+{
+  "name": "zhike-mobile-iap",
+  "version": "1.0.0",
+  "description": "iap",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "react-native-icloudstore": "0.9.0",
+    "react-native-in-app-utils": "git+https://github.com/bestofsong/react-native-in-app-utils.git#85d2fd440e4a6746eb4f47b2ca3840e28cf1827f",
+    "react-native-device-info": "0.13.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bestofsong/zhike-mobile-iap.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bestofsong/zhike-mobile-iap/issues"
+  },
+  "homepage": "https://github.com/bestofsong/zhike-mobile-iap#readme"
+}
