@@ -1,6 +1,6 @@
 {
   "name": "zhike-mobile-iap",
-  "version": "1.0.3",
+  "version": "1.1.1",
   "description": "iap",
   "main": "index.js",
   "scripts": {
