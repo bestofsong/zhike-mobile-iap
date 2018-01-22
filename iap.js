@@ -1,4 +1,5 @@
 import { NativeModules, Alert } from 'react-native';
+import iapRecord from './iapRecord';
 
 // 转化成promise方法
 const promisify = (fn, receiver) => (
@@ -32,18 +33,13 @@ function icloudAvailable() {
   });
 }
 
-function shouldSaveRecord(rec) {
-  return true;
-}
-
 /**
   * ctx:
   * {
+  *   productId: number,
   *   isLoggedIn: bool,
   *   login: func,
-  *   toAppStoreProductId?: func,
-  *   shouldSavePayRecord?: func,
-  *   iapRecordVendor:
+  *   iapRecordVendor?:
   *     {
   *       getPayRecord,
   *       savePayRecord,
@@ -53,9 +49,11 @@ function shouldSaveRecord(rec) {
   * }
  */
 export default class Iap {
-  constructor(productId, ctx) {
-    this.id = productId;
+  constructor(ctx) {
     this.ctx = ctx || {};
+    if (!this.ctx.iapRecordVendor) {
+      this.ctx.iapRecordVendor = iapRecord;
+    }
   }
 
   async prepare() {
@@ -66,12 +64,12 @@ export default class Iap {
     if (this._getProductPromise) {
       return await this._getProductPromise;
     }
-    this._getProductPromise = loadProducts([this._toAppStoreProductId()])
+    this._getProductPromise = loadProducts([this.ctx.productId])
     .then((products) => {
       return products && products[0];
     })
     .catch((e) => {
-      console.error('failed to loadProduct, id: ', this._toAppStoreProductId());
+      console.error('failed to loadProduct, id: ', this.ctx);
       return null;
     });
 
@@ -80,14 +78,17 @@ export default class Iap {
 
   // callback([appStoreProduct, paymentInfo, isCached]), return Promise<[bool, passdata]>, indicate success fail
   // return: [success: bool, passdata]
-  async purchase(callback, ctx) {
+  async purchase(callback) {
     try {
-      const { iapRecordVendor } = this.ctx;
-      const { savePayRecord, removePayRecord } = iapRecordVendor;
+      const { iapRecordVendor, productId } = this.ctx;
+      const { savePayRecord, removePayRecord, getPayRecord } = iapRecordVendor;
 
-      // 先检查已保存的记录
-      const rec = await this._getIapPayRecord().catch(() => null);
+      // 先检查已支付的记录
+      const rec = await getPayRecord.call(iapRecordVendor, productId);
       if (rec) {
+        if (rec.length !== 2) {
+          throw new Error('invalid pay record');
+        }
         const ret = await Promise.resolve(callback([...rec, true]));
         if (!ret[0]) {
           return ret;
@@ -105,27 +106,16 @@ export default class Iap {
 
       const paymentInfo = await this._iapPay();
       const [success, passdata] = await Promise.resolve(callback([appStoreProduct, paymentInfo]));
-      if (success || !shouldSaveRecord([appStoreProduct, paymentInfo])) {
+      if (success) {
         return [success, passdata];
       }
 
-      // 新的记录，提交失败了，并且重要（price > 0），就保存
+      // 新的记录，提交失败了，保存
       await savePayRecord.call(iapRecordVendor, appStoreProduct, paymentInfo);
       return [false, passdata];
     } catch (e) {
       console.error('purchase failed, error: ', e);
-      return [false];
-    }
-  }
-
-  async _getIapPayRecord() {
-    try {
-      const { iapRecordVendor } = this.ctx;
-      const { getPayRecord } = iapRecordVendor;
-      const ret = await getPayRecord.call(iapRecordVendor, this._toAppStoreProductId());
-      return ret;
-    } catch (e) {
-      return null;
+      return [false, e];
     }
   }
 
@@ -173,7 +163,7 @@ export default class Iap {
       });
     }
 
-    return await purchaseProduct(this._toAppStoreProductId());
+    return await purchaseProduct(this.ctx.productId);
   }
 
   // convenient
@@ -186,14 +176,5 @@ export default class Iap {
     if (login) {
       login(this.ctx);
     }
-  }
-
-  _toAppStoreProductId() {
-    const { toAppStoreProductId } = this.ctx;
-    if (toAppStoreProductId) {
-      return toAppStoreProductId(this.id);
-    }
-
-    return identity(this.id);
   }
 }
