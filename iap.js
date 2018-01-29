@@ -1,5 +1,7 @@
-import { NativeModules, Alert } from 'react-native';
+import { NativeModules, Alert, Platform } from 'react-native';
 import iapRecord from './iapRecord';
+
+const isIOS = Platform.OS === 'ios';
 
 // 转化成promise方法
 const promisify = (fn, receiver) => (
@@ -13,8 +15,8 @@ const promisify = (fn, receiver) => (
 );
 
 const { InAppUtils, ZKFileUtils } = NativeModules;
-const purchaseProduct = promisify(InAppUtils.purchaseProduct, { thisArg: InAppUtils });
-export const loadProducts = promisify(InAppUtils.loadProducts, { thisArg: InAppUtils });
+const purchaseProduct = isIOS && promisify(InAppUtils.purchaseProduct, { thisArg: InAppUtils });
+export const loadProducts = isIOS && promisify(InAppUtils.loadProducts, { thisArg: InAppUtils });
 
 
 function icloudAvailable() {
