@@ -14,7 +14,7 @@ const promisify = (fn, receiver) => (
 
 const { InAppUtils, ZKFileUtils } = NativeModules;
 const purchaseProduct = promisify(InAppUtils.purchaseProduct, { thisArg: InAppUtils });
-const loadProducts = promisify(InAppUtils.loadProducts, { thisArg: InAppUtils });
+export const loadProducts = promisify(InAppUtils.loadProducts, { thisArg: InAppUtils });
 
 
 function icloudAvailable() {
