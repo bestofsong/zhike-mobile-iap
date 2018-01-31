@@ -96,7 +96,7 @@ export default class Iap {
       }
 
       if (!isLoggedIn) {
-        return { rc: 'RC_IAP_DID_SAVE_REC' };
+        return { code: 'RC_IAP_DID_SAVE_REC' };
       }
 
       let ret = null;
@@ -104,11 +104,11 @@ export default class Iap {
         ret = await callback({ product: rec[0], payment: rec[1], isRestored: true });
       } catch (e) {
         console.error(e);
-        return { rc: 'RC_IAP_CALLBACK', error: e };
+        return { code: 'RC_IAP_CALLBACK', error: e };
       }
 
-      if (ret.rc !== 'RC_OK') {
-        return { rc: 'RC_IAP_CALLBACK' };
+      if (ret.code !== 'RC_OK') {
+        return { code: 'RC_IAP_CALLBACK' };
       }
 
       try {
@@ -125,11 +125,11 @@ export default class Iap {
       appStoreProduct = await this.getProduct();
     } catch (e) {
       console.error(e);
-      return { rc: 'RC_IAP_GET_PRODUCT', error: e };
+      return { code: 'RC_IAP_GET_PRODUCT', error: e };
     }
 
     if (!appStoreProduct) {
-      return { rc: 'RC_IAP_GET_PRODUCT' };
+      return { code: 'RC_IAP_GET_PRODUCT' };
     }
 
     let payment = null;
@@ -137,11 +137,11 @@ export default class Iap {
       payment = await this.iapPay();
     } catch (e) {
       console.error(e);
-      return { rc: 'RC_IAP_PURCHASE', error: e };
+      return { code: 'RC_IAP_PURCHASE', error: e };
     }
 
     if (!payment) {
-      return { rc: 'RC_IAP_PURCHASE' };
+      return { code: 'RC_IAP_PURCHASE' };
     }
 
     let callbackRes = null;
@@ -150,13 +150,13 @@ export default class Iap {
       callbackRes = await callback({ product: appStoreProduct, payment });
     } catch (e) {
       console.error(e);
-      if (e && e.rc) {
-        errorRc = e.rc;
+      if (e && e.code) {
+        errorRc = e.code;
       }
     }
 
-    const { rc, ...rest } = callbackRes || {};
-    if (isLoggedIn && rc === 'RC_OK') {
+    const { code, ...rest } = callbackRes || {};
+    if (isLoggedIn && code === 'RC_OK') {
       return callbackRes;
     }
 
@@ -165,11 +165,11 @@ export default class Iap {
       await savePayRecord.call(iapRecordVendor, appStoreProduct, payment);
       return {
         ...rest,
-        rc: isLoggedIn ? (rc || errorRc || 'RC_IAP_CALLBACK') : 'RC_IAP_DID_SAVE_REC',
+        code: isLoggedIn ? (code || errorRc || 'RC_IAP_CALLBACK') : 'RC_IAP_DID_SAVE_REC',
       };
     } catch (e) {
       console.error(e);
-      return { rc: 'RC_IAP_SAVE_REC', error: e };
+      return { code: 'RC_IAP_SAVE_REC', error: e };
     }
   }
 
