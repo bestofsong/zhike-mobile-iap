@@ -112,7 +112,7 @@ export default class Iap {
       }
 
       try {
-        await removePayRecord.call(iapRecordVendor, rec);
+        await removePayRecord.call(iapRecordVendor, productId);
       } catch (e) {
         // fixme: any better way to handle this
         console.error('removePayRecord failed, should not happen: ', e);
