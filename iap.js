@@ -147,7 +147,9 @@ export default class Iap {
     let callbackRes = null;
     let errorRc = '';
     try {
-      callbackRes = await callback({ product: appStoreProduct, payment });
+      if (isLoggedIn) {
+        callbackRes = await callback({ product: appStoreProduct, payment });
+      }
     } catch (e) {
       console.error(e);
       if (e && e.code) {
@@ -200,7 +202,7 @@ export default class Iap {
                     if (avail) {
                       resolve(this.iapPay(false));
                     } else {
-                      reject('请打开iCloud存储权限，然后重新尝试报名。');
+                      reject('请打开iCloud存储权限或登录名师课账号。然后重新尝试购买。');
                     }
                   })
                   .catch((error) => {
