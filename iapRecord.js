@@ -32,6 +32,10 @@ export default {
       if (!data) return null;
       console.log(`did get pay record from icloud: ${JSON.stringify(data)}, forKey: ${key}`);
       const { appStoreProduct, paymentInfo } = data;
+      // 兼容老数据、新版本in-app-util
+      if (paymentInfo && !paymentInfo.transactionReceipt) {
+        paymentInfo.transactionReceipt = paymentInfo.receipt;
+      }
       return [appStoreProduct, paymentInfo];
     });
   },
